@@ -1,0 +1,135 @@
+---
+title: "Interactive map tutorial"
+author: "Jahred Liddie"
+date: "2023-11-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(leaflet) # this the the interactive map package we'll use
+library(sf)
+library(ggmap) # good for basemaps, also allows access to Google Maps API
+
+# read practice datasets
+libraries <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::public-libraries.geojson?where=1=1&outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
+
+foodtrucks <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::food-truck-schedule.geojson?where=1=1&outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D")
+
+nhoods <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::boston-neighborhood-boundaries-approximated-by-2020-census-block-groups.geojson?where=1=1&outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
+
+```
+
+# Task 1: simple map
+
+First, check out what the `sf` dataframes look like compared to typical dataframes. Then, we'll review how to make a basic, static map in R using `ggplot`.
+
+```{r staticmap1}
+
+# basic map
+ggplot(nhoods) +
+  geom_sf(alpha = 0.75, linewidth = 0.5, color = "black") +
+  geom_sf(data = libraries, color = "blue") +
+  labs(title = "Libraries in Boston") +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+
+```
+
+You can also quickly add a basemap using `ggmap`.
+
+```{r staticmap2}
+# it's also possible to search the API for Boston's coordinates, 
+  # but here they are:
+boston_basemap <- get_stadiamap(c(left = -71.2, bottom = 42.22, 
+                                  right = -70.95, top = 42.4), zoom = 12)
+
+# basic map
+ggmap(boston_basemap) +
+  geom_sf(data = nhoods, alpha = 0.75, 
+          linewidth = 0.5, color = "black", inherit.aes = FALSE) +
+  geom_sf(data = libraries, color = "blue", inherit.aes = FALSE) +
+  labs(title = "Libraries in Boston") +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+```
+
+# Task 2: A simple interactive map using `leaflet`
+
+There are other methods to create interactive maps in R, but we'll start with a simple approach using the `leaflet` package.
+
+In the plot below, we plot the Boston neighborhood dataset again with locations of the libraries on top of them. We allow the Boston neighborhoods to have a "highlight" color when our cursor hovers over them. We also put a basemap behind our plotted data.
+
+```{r intmap1}
+
+# in R, leaflet generally has gpplot's syntax / structure, 
+  # but it can use pipes (%>%)
+leaflet(nhoods) %>% # this is similar to 'ggplot' 
+  
+  # this is similar to 'geom_sf'; weight controls line thickness
+  # you can also remove borders
+  addPolygons(group = "Boston neighborhoods", weight = 2, color = "black", 
+              fillColor = "blue", fillOpacity = 0.1,
+              highlightOptions = highlightOptions(fillColor = "darkblue", 
+                                                  fillOpacity = 1)) %>%
+  
+  # this is more specific to points - note the different arguments
+  addCircles(data = libraries, group = "Libraries",
+             color = "red", opacity = 1, radius = 0.5) %>%
+  
+  # this is similar to ggmap; see `providers' for a list of options
+  addProviderTiles(providers$CartoDB.Positron)
+
+```
+
+# Task 3: A more complicated interactive map using `leaflet`
+
+In the plot below, we extend our previous plot by adding labels for polygons and text popups for points. We limit the plot view for our audience. We also include control options, such that certain layers (which we specify) can be added and removed from the map.
+
+```{r intmap2}
+
+# easy way to retrieve bounds of an 'sf' object
+limits <- st_bbox(nhoods)
+
+leaflet(nhoods) %>% 
+  
+  addPolygons(group = "Boston neighborhoods", weight = 2, color = "black", 
+              fillColor = "blue", fillOpacity = 0.1,
+              label = nhoods$blockgr2020_ctr_neighb_name,
+              highlightOptions = highlightOptions(fillColor = "darkblue", 
+                                                  fillOpacity = 1)) %>%
+  
+  # now we also add very simple popups
+  addCircles(data = libraries, group = "Libraries",
+             popup = libraries$BRANCH,
+             color = "red", opacity = 1, weight = 5) %>%
+  
+  addCircles(data = foodtrucks, group = "Food trucks",
+             popup = foodtrucks$Truck,
+             color = "green", opacity = 1, weight = 4) %>%
+  
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  
+  # these are the control options for the map
+    # note that tiles can also be controlled
+  addLayersControl(
+    position = "bottomright",
+    baseGroups = "Boston neighborhoods", # needs to match `group` name above
+    overlayGroups = c("Libraries", "Food trucks")) %>%
+  
+  # now add bounds to map to limit scrolling
+  setMaxBounds(lng1 = as.numeric(limits[1]) - 0.1,
+               lat1 = as.numeric(limits[2]) - 0.1,
+               lng2 = as.numeric(limits[3]) + 0.1,
+               lat2 = as.numeric(limits[4]) + 0.1
+              )
+
+```
+
+# More resources
+
+See [here](https://rstudio.github.io/leaflet/) for a more in-depth tutorial of `leaflet`, including how to integrate them with `RShiny`.
