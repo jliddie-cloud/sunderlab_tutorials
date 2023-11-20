@@ -1,17 +1,18 @@
 ---
 title: "Interactive map tutorial"
 author: "Jahred Liddie"
-date: "2023-11-19"
+date: "2023-11-27"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(leaflet) # this the the interactive map package we'll use
 library(sf)
 library(ggmap) # good for basemaps, also allows access to Google Maps API
+library(tmap) # can make static and interactive maps
 
 # read practice datasets
 libraries <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::public-libraries.geojson?where=1=1&outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
@@ -22,11 +23,11 @@ nhoods <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/bo
 
 ```
 
-# Task 1: simple map
+# Task 1a: simple static maps using `ggplot`
 
 First, check out what the `sf` dataframes look like compared to typical dataframes. Then, we'll review how to make a basic, static map in R using `ggplot`.
 
-```{r staticmap1}
+```{r staticmap1, message = FALSE}
 
 # basic map
 ggplot(nhoods) +
@@ -36,12 +37,11 @@ ggplot(nhoods) +
   theme_void() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
-
 ```
 
 You can also quickly add a basemap using `ggmap`.
 
-```{r staticmap2}
+```{r staticmap2, message = FALSE}
 # it's also possible to search the API for Boston's coordinates, 
   # but here they are:
 boston_basemap <- get_stadiamap(c(left = -71.2, bottom = 42.22, 
@@ -58,13 +58,33 @@ ggmap(boston_basemap) +
 
 ```
 
+# Task 1b: A simple static map using `tmap`
+
+I'm generally less familiar with `tmap` but it can be used to quickly make maps (including interactive maps).
+
+```{r staticmap3, message = FALSE}
+
+tmap_mode(mode = "plot") # this is actually the default
+
+# this is generally similar to ggplot syntax, but need to specify
+ # tm_shape for each new layer
+ # I think basemaps can also be added directly using tmap
+tm_shape(nhoods) +
+  tm_polygons() +
+  tm_shape(libraries) +
+  tm_dots(size = 0.15, col = "blue") +
+  tm_layout(title = "Libraries in Boston")
+
+
+```
+
 # Task 2: A simple interactive map using `leaflet`
 
 There are other methods to create interactive maps in R, but we'll start with a simple approach using the `leaflet` package.
 
 In the plot below, we plot the Boston neighborhood dataset again with locations of the libraries on top of them. We allow the Boston neighborhoods to have a "highlight" color when our cursor hovers over them. We also put a basemap behind our plotted data.
 
-```{r intmap1}
+```{r intmap1, echo = FALSE}
 
 # in R, leaflet generally has gpplot's syntax / structure, 
   # but it can use pipes (%>%)
@@ -90,7 +110,7 @@ leaflet(nhoods) %>% # this is similar to 'ggplot'
 
 In the plot below, we extend our previous plot by adding labels for polygons and text popups for points. We limit the plot view for our audience. We also include control options, such that certain layers (which we specify) can be added and removed from the map.
 
-```{r intmap2}
+```{r intmap2, message = FALSE}
 
 # easy way to retrieve bounds of an 'sf' object
 limits <- st_bbox(nhoods)
@@ -130,6 +150,26 @@ leaflet(nhoods) %>%
 
 ```
 
+# Task 4: A simple interactive map using `tmap`
+
+Now let's do something similar with `tmap`. In general, `leaflet` seems more customizable, but I think `tmap` can be useful when you just want to check that something worked as you expected when you're dealing with spatial data (e.g., spatial operations). By default, it also shows a lot more information.
+
+```{r tmap_int, message = FALSE}
+
+tmap_mode(mode = "view") # this is how to specify interactive mapping
+
+# this is generally similar to ggplot syntax, but need to specify
+ # tm_shape for each new layer
+tm_shape(nhoods) +
+  tm_polygons() +
+  tm_shape(libraries) +
+  tm_dots(size = 0.05, col = "blue") +
+  tm_layout(title = "Libraries in Boston")
+
+```
+
 # More resources
 
 See [here](https://rstudio.github.io/leaflet/) for a more in-depth tutorial of `leaflet`, including how to integrate them with `RShiny`.
+
+See [here](https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html) for more info on `tmap`.
