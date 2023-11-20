@@ -3,6 +3,8 @@ title: "Interactive map tutorial"
 author: "Jahred Liddie"
 date: "2023-11-27"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
@@ -43,7 +45,7 @@ You can also quickly add a basemap using `ggmap`.
 
 ```{r staticmap2, message = FALSE}
 # it's also possible to search the API for Boston's coordinates, 
-  # but here they are:
+  # but here they are (using StadiaMap, which also requires a key)
 boston_basemap <- get_stadiamap(c(left = -71.2, bottom = 42.22, 
                                   right = -70.95, top = 42.4), zoom = 12)
 
@@ -85,7 +87,7 @@ There are other methods to create interactive maps in R, but we'll start with a 
 
 In the plot below, we plot the Boston neighborhood dataset again with locations of the libraries on top of them. We allow the Boston neighborhoods to have a "highlight" color when our cursor hovers over them. We also put a basemap behind our plotted data.
 
-```{r intmap1, echo = FALSE}
+```{r intmap1, message = FALSE}
 
 # in R, leaflet generally has gpplot's syntax / structure, 
   # but it can use pipes (%>%)
