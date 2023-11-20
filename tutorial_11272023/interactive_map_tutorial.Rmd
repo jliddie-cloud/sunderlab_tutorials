@@ -62,7 +62,7 @@ ggmap(boston_basemap) +
 
 # Task 1b: A simple static map using `tmap`
 
-I'm generally less familiar with `tmap` but it can be used to quickly make maps (including interactive maps).
+I'm generally less familiar with `tmap` but it can be used to quickly make maps (including interactive maps). Note that maps can also be made in base R (using `plot`).
 
 ```{r staticmap3, message = FALSE}
 
