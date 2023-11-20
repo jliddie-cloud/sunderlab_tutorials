@@ -69,6 +69,7 @@ tmap_mode(mode = "plot") # this is actually the default
 # this is generally similar to ggplot syntax, but need to specify
  # tm_shape for each new layer
  # I think basemaps can also be added directly using tmap
+
 tm_shape(nhoods) +
   tm_polygons() +
   tm_shape(libraries) +
@@ -158,8 +159,6 @@ Now let's do something similar with `tmap`. In general, `leaflet` seems more cus
 
 tmap_mode(mode = "view") # this is how to specify interactive mapping
 
-# this is generally similar to ggplot syntax, but need to specify
- # tm_shape for each new layer
 tm_shape(nhoods) +
   tm_polygons() +
   tm_shape(libraries) +
