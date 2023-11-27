@@ -11,12 +11,12 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
-library(leaflet) # this the the interactive map package we'll use
+library(leaflet) # this is the interactive map package we'll use
 library(sf)
 library(ggmap) # good for basemaps, also allows access to Google Maps API
-library(tmap) # can make static and interactive maps
+library(tmap) # another pkg that can make static and interactive maps
 
-# read practice datasets
+# read practice datasets from data.boston.gov
 libraries <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::public-libraries.geojson?where=1=1&outSR=%7B%22latestWkid%22%3A2249%2C%22wkid%22%3A102686%7D")
 
 foodtrucks <- st_read("https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::food-truck-schedule.geojson?where=1=1&outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D")
@@ -49,6 +49,11 @@ You can also quickly add a basemap using `ggmap`.
 boston_basemap <- get_stadiamap(c(left = -71.2, bottom = 42.22, 
                                   right = -70.95, top = 42.4), zoom = 12)
 
+# Note: Stadia has mapping tools (incl. basemaps) and it now hosts Stamen maps,
+  # which formerly had a lot of free basemaps of the globe. The actual data 
+  # come from OpenStreetMap, which is a free, open-source geodatabase.
+# Carto/CartoDB is another similar application.
+
 # basic map
 ggmap(boston_basemap) +
   geom_sf(data = nhoods, alpha = 0.75, 
@@ -62,7 +67,7 @@ ggmap(boston_basemap) +
 
 # Task 1b: A simple static map using `tmap`
 
-I'm generally less familiar with `tmap` but it can be used to quickly make maps (including interactive maps). Note that maps can also be made in base R (using `plot`).
+I'm generally less familiar with `tmap` but it can be used to quickly make maps (including interactive maps). I sometimes use `tmap` to make sure that a spatial operation or function worked as I intended. Note that maps can also be made in base R (using `plot`).
 
 ```{r staticmap3, message = FALSE}
 
@@ -85,12 +90,12 @@ tm_shape(nhoods) +
 
 There are other methods to create interactive maps in R, but we'll start with a simple approach using the `leaflet` package.
 
-In the plot below, we plot the Boston neighborhood dataset again with locations of the libraries on top of them. We allow the Boston neighborhoods to have a "highlight" color when our cursor hovers over them. We also put a basemap behind our plotted data.
+In the plot below, we plot the Boston neighborhood dataset again with locations of the libraries on top of it. We give the Boston neighborhoods a "highlight" color when our cursor hovers over them. We also put a basemap behind our plotted data.
 
 ```{r intmap1, message = FALSE}
 
-# in R, leaflet generally has gpplot's syntax / structure, 
-  # but it can use pipes (%>%)
+# in R, leaflet generally has ggplot's syntax / structure, 
+  # but it uses pipes (%>%)
 leaflet(nhoods) %>% # this is similar to 'ggplot' 
   
   # this is similar to 'geom_sf'; weight controls line thickness
@@ -111,7 +116,7 @@ leaflet(nhoods) %>% # this is similar to 'ggplot'
 
 # Task 3: A more complicated interactive map using `leaflet`
 
-In the plot below, we extend our previous plot by adding labels for polygons and text popups for points. We limit the plot view for our audience. We also include control options, such that certain layers (which we specify) can be added and removed from the map.
+In the plot below, we extend our previous plot by adding labels for polygons and text popups for points. We limit the plot view for our audience. We also include control options, such that certain layers (which we specify) can be added or removed from the map.
 
 ```{r intmap2, message = FALSE}
 
@@ -155,7 +160,7 @@ leaflet(nhoods) %>%
 
 # Task 4: A simple interactive map using `tmap`
 
-Now let's do something similar with `tmap`. In general, `leaflet` seems more customizable, but I think `tmap` can be useful when you just want to check that something worked as you expected when you're dealing with spatial data (e.g., spatial operations). By default, it also shows a lot more information.
+Now let's do something similar with `tmap`. In general, `leaflet` seems more customizable. By default, it `tmap` shows a lot more information.
 
 ```{r tmap_int, message = FALSE}
 
@@ -174,3 +179,5 @@ tm_shape(nhoods) +
 See [here](https://rstudio.github.io/leaflet/) for a more in-depth tutorial of `leaflet`, including how to integrate them with `RShiny`.
 
 See [here](https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html) for more info on `tmap`.
+
+There are more options out there to make interactive maps, either using R, other programming languages, or software tools (e.g., ArcGIS storymaps). [Here](https://bookdown.org/nicohahn/making_maps_with_r5/docs/introduction.html) are some more examples with R.
